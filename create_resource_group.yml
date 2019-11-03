@@ -1,0 +1,13 @@
+- hosts: localhost
+  #connection: local
+  gather_facts: no
+  tasks:
+    - name: Create resource group
+      azure_rm_resourcegroup:
+        name: rgm
+        location: eastus
+        cert_validation_mode: ignore
+        state: absent
+      register: rg
+    - debug:
+        var: rg

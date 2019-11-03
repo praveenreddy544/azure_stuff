@@ -1,0 +1,50 @@
+- hosts: localhost
+  gather_facts: no
+  vars_prompt:
+    - name: vmname
+      prompt: 'Pls supply your desired vm name: '
+      private: no
+    - name: subnet
+      prompt: 'Pls supply your desired subnet-name: '
+      private: no
+  tasks:
+    
+    - name: Create nic to attach to this vm
+      azure_rm_networkinterface:
+         name: "{{ vmname }}-chintucustom"
+         resource_group: automate_stuff
+         cert_validation_mode: ignore
+         virtual_network: testing-network-creation
+         subnet: "{{ subnet }}"
+         security_group: customnc
+         ip_configurations:
+           - name: ipconfig1
+             public_ip_address_name: publicip001
+             public_ip_allocation_method: Static
+             primary: True
+
+    - name: Create new vm in existing resourcegroup
+      azure_rm_virtualmachine:
+        cert_validation_mode: ignore
+        resource_group: automate_stuff
+        name: "{{ vmname }}"
+        vm_size: Standard_B1ls
+        managed_disk_type: Premium_LRS
+        subnet_name: "{{ subnet }}"
+        virtual_network_name: 'testing-network-creation'
+        network_interfaces: "{{ vmname }}-chintucustom"
+        image:
+          offer: CentOS
+          publisher: OpenLogic
+          sku: '7.1'
+          version: latest
+        admin_username: chintu
+        admin_password: Chintu@1
+        ssh_public_keys:
+        - path: /home/chintu/.ssh/authorized_keys
+          key_data: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuvXvaHcbcEuWwB1xQzTt25R0yEsb3OQl+M2UFAc3l/dGo50GEXKBvHymtsBGRB9SsjXtZ8l7JqkufdGVdkuhrx4X2DGvipcX+o/NGJlmV5JJ7RTeFKgybQ1j64GJwX7bxKZX9lCtZou8FJ2spetfxIoZuoBWq17n1mugESy8nk+KphCO74q8UQEdCnYRQj8uSfEjoppT/TuH77Xu+PemvLUaMry9UguOZ/a8dfqjR8xHNoMcDQ0pEtYb81DToAD8AKcE71ousxUSzubi+F5CtSMdwccOKG3EvigHEFAe12HrhunSbDd5bi4MsHG3XCA/pHQkwaJvGIviXi5Np0wCz chintu@r7server'
+      register: vm_creation_op
+
+    - name: display vm created output
+      debug:
+        var: vm_creation_op

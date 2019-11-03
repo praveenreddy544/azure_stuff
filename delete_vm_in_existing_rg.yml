@@ -1,0 +1,14 @@
+- hosts: localhost
+  gather_facts: no
+  vars_prompt:
+    - name: vmname
+      prompt: 'Pls supply your desired vm name: '
+      private: no
+  tasks:
+    - name: delete vm from rg
+      azure_rm_virtualmachine:
+        resource_group: automate_stuff
+        name: "{{ vmname }}"
+        remove_on_absent: all_autocreated
+        state: absent
+        cert_validation_mode: ignore
